@@ -11,7 +11,6 @@ import {
   Settings,
   Sparkles
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/', icon: Home, label: '首页' },
@@ -27,34 +26,48 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col h-screen flex-shrink-0">
+    <aside 
+      className="hidden md:flex flex-col h-screen flex-shrink-0 border-r"
+      style={{ 
+        width: '240px',
+        backgroundColor: '#ffffff',
+        borderColor: '#e5e7eb'
+      }}
+    >
       {/* Logo */}
-      <div className="h-16 flex items-center px-6 border-b border-gray-200">
-        <Link href="/" className="flex items-center gap-2">
+      <div 
+        className="flex items-center px-5 border-b"
+        style={{ height: '64px', borderColor: '#e5e7eb' }}
+      >
+        <Link href="/" className="flex items-center gap-2.5">
           <span className="text-2xl">🦞</span>
-          <span className="font-bold text-xl text-gray-900">MyClawNote</span>
+          <span className="font-semibold text-lg" style={{ color: '#111827' }}>
+            MyClawNote
+          </span>
         </Link>
       </div>
 
       {/* Navigation */}
       <nav className="flex-1 py-4 overflow-y-auto">
-        <ul className="space-y-1 px-3">
+        <ul className="space-y-0.5 px-3">
           {navItems.map(item => {
             const isActive = pathname === item.href || 
               (item.href !== '/' && pathname.startsWith(item.href));
+            const Icon = item.icon;
+            
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-                    isActive
-                      ? 'bg-blue-50 text-blue-600 font-medium'
-                      : 'text-gray-600 hover:bg-gray-100'
-                  )}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors"
+                  style={{
+                    color: isActive ? '#E53935' : '#4b5563',
+                    backgroundColor: isActive ? '#FFEBEE' : 'transparent',
+                    fontWeight: isActive ? 500 : 400
+                  }}
                 >
-                  <item.icon className="w-5 h-5" />
-                  <span>{item.label}</span>
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm">{item.label}</span>
                 </Link>
               </li>
             );
@@ -63,10 +76,10 @@ export function Sidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="text-xs text-gray-400">
+      <div className="px-5 py-4 border-t" style={{ borderColor: '#e5e7eb' }}>
+        <span className="text-xs" style={{ color: '#9ca3af' }}>
           Powered by OpenClaw
-        </div>
+        </span>
       </div>
     </aside>
   );

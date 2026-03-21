@@ -1,8 +1,6 @@
-// Button 组件
 'use client';
 
 import { ButtonHTMLAttributes, forwardRef } from 'react';
-import { cn } from '@/lib/utils';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
@@ -11,27 +9,27 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', loading, disabled, children, ...props }, ref) => {
+  ({ className = '', variant = 'primary', size = 'md', loading, disabled, children, ...props }, ref) => {
+    const baseStyle = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
+    
+    const variantStyles = {
+      primary: 'bg-[#E53935] text-white hover:bg-[#C62828]',
+      secondary: 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50',
+      ghost: 'bg-transparent text-gray-600 hover:bg-gray-100',
+      danger: 'bg-red-600 text-white hover:bg-red-700',
+    };
+    
+    const sizeStyles = {
+      sm: 'px-3 py-1.5 text-sm h-8',
+      md: 'px-4 py-2 text-sm h-9',
+      lg: 'px-6 py-3 text-base h-11',
+    };
+
     return (
       <button
         ref={ref}
         disabled={disabled || loading}
-        className={cn(
-          'inline-flex items-center justify-center font-medium rounded-lg transition-colors cursor-pointer',
-          'disabled:opacity-50 disabled:cursor-not-allowed',
-          {
-            'bg-blue-600 text-white hover:bg-blue-700': variant === 'primary',
-            'bg-gray-100 text-gray-700 hover:bg-gray-200': variant === 'secondary',
-            'bg-transparent text-gray-600 hover:bg-gray-100': variant === 'ghost',
-            'bg-red-600 text-white hover:bg-red-700': variant === 'danger',
-          },
-          {
-            'px-3 py-1.5 text-sm': size === 'sm',
-            'px-4 py-2 text-sm': size === 'md',
-            'px-6 py-3 text-base': size === 'lg',
-          },
-          className
-        )}
+        className={`${baseStyle} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
         {...props}
       >
         {loading && (

@@ -85,111 +85,110 @@ export default function RulesPage() {
   };
 
   return (
-    <div className="page-container max-w-2xl mx-auto">
-      {/* 顶部 */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="hidden md:block">
-          <h1 className="text-xl font-bold text-gray-900">规则引擎</h1>
-          <p className="text-gray-500 text-sm">自定义内容处理流程</p>
+    <div className="page-container">
+      <div className="page-content">
+        {/* 顶部 */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="page-title mb-0">规则引擎</h1>
+          <Button onClick={() => { setEditingRule(null); setShowEditor(true); }}>
+            <Plus className="w-4 h-4 mr-2" />
+            新建规则
+          </Button>
         </div>
-        <Button size="sm" onClick={() => { setEditingRule(null); setShowEditor(true); }}>
-          <Plus className="w-4 h-4 md:mr-2" />
-          <span className="hidden md:inline">新建规则</span>
-        </Button>
-      </div>
 
-      {/* 规则说明 */}
-      <Card className="p-3 mb-4 bg-blue-50 border-blue-200">
-        <p className="text-xs text-blue-800">
-          规则引擎允许你自定义内容抓取后的处理流程。例如：抓取知乎回答后自动剔除广告、提取核心观点等。
-        </p>
-      </Card>
-
-      {/* 规则列表 */}
-      {isLoading ? (
-        <div className="text-center py-8 text-gray-400">加载中...</div>
-      ) : rules.length === 0 ? (
-        <Card className="p-8 text-center">
-          <div className="text-3xl mb-3">⚙️</div>
-          <p className="text-gray-400 text-sm mb-4">暂无规则</p>
-          <Button size="sm" onClick={() => setShowEditor(true)}>创建第一条规则</Button>
+        {/* 规则说明 */}
+        <Card className="p-4 mb-6" style={{ backgroundColor: '#EBF5FF', borderColor: '#BFDBFE' }}>
+          <p className="text-sm" style={{ color: '#1e40af' }}>
+            规则引擎允许你自定义内容抓取后的处理流程。例如：抓取知乎回答后自动剔除广告、提取核心观点、生成金句等。
+          </p>
         </Card>
-      ) : (
-        <div className="space-y-3">
-          {rules.map(rule => (
-            <Card key={rule.id} className={`p-3 ${!rule.is_active ? 'opacity-60' : ''}`}>
-              <div className="flex items-start gap-3">
-                {/* 启用状态 */}
-                <button
-                  onClick={() => handleToggleActive(rule.id, rule.is_active)}
-                  className="mt-0.5 flex-shrink-0"
-                >
-                  {rule.is_active ? (
-                    <Power className="w-5 h-5 text-green-500" />
-                  ) : (
-                    <PowerOff className="w-5 h-5 text-gray-400" />
-                  )}
-                </button>
-                
-                {/* 内容 */}
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 text-sm">{rule.name}</h3>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-gray-400 flex-wrap">
-                    {rule.trigger?.platform && (
-                      <span className="px-1.5 py-0.5 bg-gray-100 rounded">{rule.trigger.platform}</span>
+
+        {/* 规则列表 */}
+        {isLoading ? (
+          <div className="text-center py-8" style={{ color: '#9ca3af' }}>加载中...</div>
+        ) : rules.length === 0 ? (
+          <Card className="p-8 text-center">
+            <div className="text-3xl mb-3">⚙️</div>
+            <p className="mb-4" style={{ color: '#9ca3af' }}>暂无规则</p>
+            <Button onClick={() => setShowEditor(true)}>创建第一条规则</Button>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {rules.map(rule => (
+              <Card key={rule.id} className={`p-4 ${!rule.is_active ? 'opacity-60' : ''}`}>
+                <div className="flex items-center gap-4">
+                  {/* 启用状态 */}
+                  <button
+                    onClick={() => handleToggleActive(rule.id, rule.is_active)}
+                    className="cursor-pointer"
+                  >
+                    {rule.is_active ? (
+                      <Power className="w-5 h-5" style={{ color: '#10b981' }} />
+                    ) : (
+                      <PowerOff className="w-5 h-5" style={{ color: '#9ca3af' }} />
                     )}
-                    <span>{rule.actions?.length || 0} 个动作</span>
-                    <span>{formatDateShort(rule.created_at)}</span>
+                  </button>
+                  
+                  {/* 内容 */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-medium" style={{ color: '#111827' }}>{rule.name}</h3>
+                    <div className="flex items-center gap-3 mt-1 text-xs" style={{ color: '#9ca3af' }}>
+                      {rule.trigger?.platform && (
+                        <span className="tag tag-gray">{rule.trigger.platform}</span>
+                      )}
+                      <span>{rule.actions?.length || 0} 个动作</span>
+                      <span>{formatDateShort(rule.created_at)}</span>
+                    </div>
+                    
+                    {/* 关键词 */}
+                    {(rule.trigger?.keywords?.length ?? 0) > 0 && (
+                      <div className="flex gap-1.5 mt-2 flex-wrap">
+                        {rule.trigger?.keywords?.map((kw: string) => (
+                          <span key={kw} className="tag" style={{ backgroundColor: '#FEF3C7', color: '#92400e' }}>
+                            {kw}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                   
-                  {/* 关键词 */}
-                  {(rule.trigger?.keywords?.length ?? 0) > 0 && (
-                    <div className="flex gap-1 mt-2 flex-wrap">
-                      {rule.trigger?.keywords?.map(kw => (
-                        <span key={kw} className="px-1.5 py-0.5 bg-amber-50 text-amber-700 text-xs rounded">
-                          {kw}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+                  {/* 操作按钮 */}
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => { setEditingRule(rule); setShowEditor(true); }}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(rule.id)}
+                    >
+                      <Trash2 className="w-4 h-4" style={{ color: '#ef4444' }} />
+                    </Button>
+                  </div>
                 </div>
-                
-                {/* 操作按钮 */}
-                <div className="flex gap-1 flex-shrink-0">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => { setEditingRule(rule); setShowEditor(true); }}
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(rule.id)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
-      )}
+              </Card>
+            ))}
+          </div>
+        )}
 
-      {/* 规则编辑弹窗 */}
-      <Modal
-        open={showEditor}
-        onClose={() => setShowEditor(false)}
-        title={editingRule ? '编辑规则' : '新建规则'}
-        size="lg"
-      >
-        <RuleEditor
-          rule={editingRule || undefined}
-          onSave={handleSaveRule}
-          onCancel={() => setShowEditor(false)}
-        />
-      </Modal>
+        {/* 规则编辑弹窗 */}
+        <Modal
+          open={showEditor}
+          onClose={() => setShowEditor(false)}
+          title={editingRule ? '编辑规则' : '新建规则'}
+          size="lg"
+        >
+          <RuleEditor
+            rule={editingRule || undefined}
+            onSave={handleSaveRule}
+            onCancel={() => setShowEditor(false)}
+          />
+        </Modal>
+      </div>
     </div>
   );
 }

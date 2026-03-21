@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Link2, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 
 export function QuickCapture() {
@@ -46,13 +45,14 @@ export function QuickCapture() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
+    <form onSubmit={handleSubmit} className="flex gap-3">
       <div className="flex-1">
-        <Input
+        <input
           type="url"
           placeholder="粘贴文章链接，支持微信/知乎/小红书..."
           value={url}
           onChange={e => setUrl(e.target.value)}
+          className="input"
         />
       </div>
       <Button type="submit" disabled={loading || !url.trim()}>

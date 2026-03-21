@@ -1,23 +1,21 @@
-// Card 组件
 'use client';
 
 import { HTMLAttributes, forwardRef } from 'react';
-import { cn } from '@/lib/utils';
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ className, hover = false, children, ...props }, ref) => {
+  ({ className = '', hover = false, children, ...props }, ref) => {
     return (
       <div
         ref={ref}
-        className={cn(
-          'bg-white rounded-xl border border-gray-200 shadow-sm',
-          hover && 'hover:shadow-md hover:border-gray-300 transition-shadow cursor-pointer',
-          className
-        )}
+        className={`bg-white rounded-lg border shadow-sm ${hover ? 'card-hover cursor-pointer' : ''} ${className}`}
+        style={{ 
+          borderColor: '#e5e7eb',
+          boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+        }}
         {...props}
       >
         {children}
