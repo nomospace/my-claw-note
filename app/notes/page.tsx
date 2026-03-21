@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Link from 'next/link';
-import { Search, Plus, FolderOpen } from 'lucide-react';
+import { Search, Plus, FolderOpen, Filter, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { PLATFORMS } from '@/lib/constants';
@@ -38,9 +38,14 @@ export default function NotesPage() {
   return (
     <div className="page-container">
       <div className="page-content">
-        {/* 顶部操作栏 */}
+        {/* 页面标题栏 */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="page-title mb-0">笔记</h1>
+          <div>
+            <h1 className="page-title mb-1">笔记</h1>
+            <p className="text-sm" style={{ color: '#6b7280' }}>
+              管理你的知识笔记，支持搜索、筛选和批量操作
+            </p>
+          </div>
           <div className="flex gap-2">
             <Button variant="ghost" onClick={() => setShowSearch(!showSearch)}>
               <Search className="w-4 h-4" />
@@ -59,27 +64,38 @@ export default function NotesPage() {
           <div className="mb-4">
             <input
               type="search"
-              placeholder="搜索笔记..."
+              placeholder="搜索笔记标题或内容..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="input"
+              autoFocus
             />
           </div>
         )}
 
         {/* 统计 */}
-        <p className="text-sm mb-4" style={{ color: '#6b7280' }}>共 {total} 条笔记</p>
+        <p className="text-sm mb-4" style={{ color: '#6b7280' }}>
+          共 {total} 条笔记
+        </p>
 
         {/* 笔记列表 */}
         {isLoading ? (
           <div className="text-center py-8" style={{ color: '#9ca3af' }}>加载中...</div>
         ) : notes.length === 0 ? (
           <Card className="p-8 text-center">
-            <FolderOpen className="w-10 h-10 mx-auto mb-3" style={{ color: '#d1d5db' }} />
-            <p className="mb-4" style={{ color: '#9ca3af' }}>暂无笔记</p>
-            <Link href="/capture">
-              <Button size="sm">去抓取内容</Button>
-            </Link>
+            <FolderOpen className="w-12 h-12 mx-auto mb-4" style={{ color: '#d1d5db' }} />
+            <p className="mb-2" style={{ color: '#6b7280' }}>暂无笔记</p>
+            <p className="text-sm mb-4" style={{ color: '#9ca3af' }}>
+              开始抓取内容或手动创建笔记
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Link href="/capture">
+                <Button variant="secondary" size="sm">去抓取</Button>
+              </Link>
+              <Link href="/notes/new">
+                <Button size="sm">新建笔记</Button>
+              </Link>
+            </div>
           </Card>
         ) : (
           <div className="space-y-2">
@@ -97,7 +113,7 @@ export default function NotesPage() {
                           {note.summary}
                         </p>
                       )}
-                      <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-center gap-3 mt-2 flex-wrap">
                         <span className="text-xs" style={{ color: '#9ca3af' }}>
                           {formatDateShort(note.created_at)}
                         </span>
@@ -108,6 +124,11 @@ export default function NotesPage() {
                                 {tag}
                               </span>
                             ))}
+                            {note.tags.length > 3 && (
+                              <span className="text-xs" style={{ color: '#9ca3af' }}>
+                                +{note.tags.length - 3}
+                              </span>
+                            )}
                           </div>
                         )}
                       </div>

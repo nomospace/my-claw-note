@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Link2, FileText, GitBranch, Archive, Settings } from 'lucide-react';
+import { Home, Link2, FileText, Archive, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -17,7 +17,10 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden safe-area-pb">
+    <nav 
+      className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t md:hidden safe-area-pb"
+      style={{ borderColor: '#e5e7eb' }}
+    >
       <div className="flex items-center justify-around h-14">
         {navItems.map(item => {
           const isActive = pathname === item.href || 
@@ -30,9 +33,9 @@ export function BottomNav() {
               href={item.href}
               className={cn(
                 'flex flex-col items-center justify-center flex-1 h-full',
-                'transition-colors',
-                isActive ? 'text-blue-600' : 'text-gray-500'
+                'transition-colors'
               )}
+              style={{ color: isActive ? '#E53935' : '#6b7280' }}
             >
               <Icon className="w-5 h-5" />
               <span className="text-xs mt-0.5">{item.label}</span>
