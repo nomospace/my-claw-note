@@ -3,6 +3,7 @@ import { generateId } from '@/lib/utils';
 import { getDbSync, saveDbSync } from '@/lib/db';
 import { generateSummary, extractKeywords, extractMaterials, denoiseContent } from './ai';
 import { saveSnapshot, generateSnapshotHtml } from './snapshot';
+import { autoLinkNote } from './knowledge';
 import type { SqlValue } from 'sql.js';
 
 const RSSHUB_BASE = 'https://rsshub.app';
@@ -177,6 +178,15 @@ export async function createNoteWithProcess(
   }
   
   saveDbSync();
+  
+  // 7. 自动建立知识关联（异步执行，不阻塞）
+  autoLinkNote(noteId).then(count => {
+    if (count > 0) {
+      console.log(`Auto-linked ${count} related notes for ${noteId}`);
+    }
+  }).catch(err => {
+    console.error('Auto-link error:', err);
+  });
   
   return noteId;
 }

@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, Edit2, Trash2, Tag, Calendar, FileText } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Edit2, Trash2, Tag, Calendar, FileText, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { PLATFORMS } from '@/lib/constants';
@@ -18,6 +18,14 @@ export default function NoteDetailPage() {
     queryKey: ['note', noteId],
     queryFn: () => fetch(`/api/notes/${noteId}`).then(res => res.json()),
   });
+
+  const { data: relatedData } = useQuery({
+    queryKey: ['related', noteId],
+    queryFn: () => fetch(`/api/notes/${noteId}/related`).then(res => res.json()),
+    enabled: !!note && !note.error,
+  });
+
+  const relatedNotes = relatedData?.related || [];
 
   const handleDelete = async () => {
     if (!confirm('确定要删除这篇笔记吗？')) return;
@@ -136,7 +144,7 @@ export default function NoteDetailPage() {
       )}
 
       {/* 正文 */}
-      <Card className="p-6">
+      <Card className="p-6 mb-6">
         <div className="prose prose-sm max-w-none">
           {note.content ? (
             <div dangerouslySetInnerHTML={{ __html: note.content.replace(/\n/g, '<br/>') }} />
@@ -148,7 +156,7 @@ export default function NoteDetailPage() {
 
       {/* 关键词 */}
       {note.keywords?.length > 0 && (
-        <div className="mt-6">
+        <Card className="p-4 mb-6">
           <h3 className="text-sm font-medium text-gray-500 mb-2">🔑 关键词</h3>
           <div className="flex flex-wrap gap-2">
             {note.keywords.map((kw: string) => (
@@ -157,7 +165,40 @@ export default function NoteDetailPage() {
               </span>
             ))}
           </div>
-        </div>
+        </Card>
+      )}
+
+      {/* 相关笔记 */}
+      {relatedNotes.length > 0 && (
+        <Card className="p-4">
+          <h3 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
+            <Link2 className="w-4 h-4" />
+            相关笔记
+          </h3>
+          <div className="space-y-2">
+            {relatedNotes.map((rel: any) => (
+              <Link
+                key={rel.id}
+                href={`/notes/${rel.id}`}
+                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <span className="text-gray-700 truncate">{rel.title}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">
+                    相似度 {Math.round(rel.similarity_score * 100)}%
+                  </span>
+                  <span className={`px-2 py-0.5 text-xs rounded ${
+                    rel.relation_type === 'similar' 
+                      ? 'bg-green-50 text-green-700' 
+                      : 'bg-blue-50 text-blue-700'
+                  }`}>
+                    {rel.relation_type === 'similar' ? '相似' : '关联'}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </Card>
       )}
     </div>
   );
