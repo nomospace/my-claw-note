@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link2, Loader2, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Link2, Loader2, CheckCircle, XCircle, Clock, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
@@ -23,7 +23,7 @@ interface CaptureTask {
 
 export default function CapturePage() {
   const [url, setUrl] = useState('');
-  const [urls, setUrls] = useState(''); // 批量导入
+  const [urls, setUrls] = useState('');
   const [mode, setMode] = useState<'single' | 'batch'>('single');
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -32,7 +32,21 @@ export default function CapturePage() {
   const { data: tasksData, isLoading } = useQuery({
     queryKey: ['capture-tasks'],
     queryFn: () => fetch('/api/capture').then(res => res.json()),
-    refetchInterval: 5000, // 每5秒刷新
+    refetchInterval: 5000,
+  });
+
+  // 清理超时任务
+  const cleanupMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/capture/cleanup', { method: 'POST' });
+      return res.json();
+    },
+    onSuccess: (data) => {
+      if (data.cleaned > 0) {
+        toast('info', data.message);
+      }
+      queryClient.invalidateQueries({ queryKey: ['capture-tasks'] });
+    },
   });
 
   // 抓取突变
@@ -61,6 +75,11 @@ export default function CapturePage() {
       toast('error', '抓取失败，请检查链接');
     },
   });
+
+  // 页面加载时自动清理超时任务
+  useEffect(() => {
+    cleanupMutation.mutate();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,11 +186,25 @@ export default function CapturePage() {
             </div>
           ))}
         </div>
+        <p className="text-xs text-gray-400 mt-3">
+          ⚠️ 知乎专栏因平台反爬限制，建议使用手动导入
+        </p>
       </Card>
 
       {/* 任务列表 */}
       <div>
-        <h2 className="section-title">抓取任务</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="section-title mb-0">抓取任务</h2>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => cleanupMutation.mutate()}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            清理超时任务
+          </Button>
+        </div>
+        
         {isLoading ? (
           <div className="text-center py-8 text-gray-500">加载中...</div>
         ) : tasks.length === 0 ? (

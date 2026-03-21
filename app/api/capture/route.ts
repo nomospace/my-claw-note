@@ -8,6 +8,25 @@ import {
   createNoteWithProcess
 } from '@/lib/services/capture';
 import { ensureDbInitialized } from '@/lib/db/init';
+import { getDbSync, saveDbSync } from '@/lib/db';
+
+// 自动清理超时任务（超过 2 分钟的 pending/processing）
+function cleanupStaleTasks() {
+  try {
+    const db = getDbSync();
+    db.run(`
+      UPDATE capture_tasks 
+      SET status = 'failed', 
+          error_message = '任务超时，已自动清理',
+          completed_at = datetime('now')
+      WHERE status IN ('pending', 'processing')
+      AND datetime(created_at) < datetime('now', '-2 minutes')
+    `);
+    saveDbSync();
+  } catch (e) {
+    console.error('Cleanup error:', e);
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -32,38 +51,48 @@ export async function POST(request: NextRequest) {
 
     const taskId = createCaptureTask(url, platformInfo.platform);
 
-    const result = await captureFromRSSHub(
-      platformInfo.platform,
-      platformInfo.type,
-      platformInfo.id
-    );
-
-    if (result) {
-      // 使用新的处理流程（降噪、摘要、关键词、素材、快照）
-      const noteId = await createNoteWithProcess(
-        result.title,
-        result.content,
-        url,
-        platformInfo.platform
+    try {
+      const result = await captureFromRSSHub(
+        platformInfo.platform,
+        platformInfo.type,
+        platformInfo.id
       );
 
-      updateCaptureTask(taskId, 'completed', noteId);
+      if (result) {
+        const noteId = await createNoteWithProcess(
+          result.title,
+          result.content,
+          url,
+          platformInfo.platform
+        );
 
+        updateCaptureTask(taskId, 'completed', noteId);
+
+        return NextResponse.json({
+          taskId,
+          status: 'completed',
+          noteId,
+          title: result.title,
+        });
+      } else {
+        updateCaptureTask(taskId, 'failed', undefined, 'RSSHub 抓取失败，请检查链接或稍后重试');
+        
+        return NextResponse.json({
+          taskId,
+          status: 'failed',
+          message: '抓取失败，可能是网络问题或内容不可访问',
+        });
+      }
+    } catch (captureError) {
+      console.error('Capture from RSSHub error:', captureError);
+      updateCaptureTask(taskId, 'failed', undefined, String(captureError));
+      
       return NextResponse.json({
         taskId,
-        status: 'completed',
-        noteId,
-        title: result.title,
+        status: 'failed',
+        message: '抓取过程出错: ' + String(captureError),
       });
     }
-
-    updateCaptureTask(taskId, 'processing');
-    
-    return NextResponse.json({
-      taskId,
-      status: 'processing',
-      message: '正在处理中，请稍后刷新查看结果',
-    });
 
   } catch (error) {
     console.error('Capture error:', error);
@@ -77,6 +106,10 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   try {
     await ensureDbInitialized();
+    
+    // 自动清理超时任务
+    cleanupStaleTasks();
+    
     const tasks = getAllTasks();
     return NextResponse.json({ tasks });
   } catch (error) {

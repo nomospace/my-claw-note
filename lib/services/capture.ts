@@ -6,7 +6,8 @@ import { saveSnapshot, generateSnapshotHtml } from './snapshot';
 import { autoLinkNote } from './knowledge';
 import type { SqlValue } from 'sql.js';
 
-const RSSHUB_BASE = 'https://rsshub.app';
+// 使用本地 RSSHub
+const RSSHUB_BASE = process.env.RSSHUB_URL || 'http://127.0.0.1:1200';
 
 interface CaptureResult {
   title: string;
@@ -43,21 +44,38 @@ export async function captureFromRSSHub(
       return null;
   }
 
+  if (!rssPath) return null;
+
   try {
+    console.log(`[Capture] Fetching from local RSSHub: ${RSSHUB_BASE}${rssPath}`);
+    
     const response = await fetch(`${RSSHUB_BASE}${rssPath}`, {
       headers: { 'Accept': 'application/xml' },
+      signal: AbortSignal.timeout(30000), // 30秒超时
     });
 
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error(`[Capture] RSSHub response not ok: ${response.status}`);
+      return null;
+    }
 
     const text = await response.text();
+    
+    // 检查是否是有效的 RSS
+    if (!text.includes('<rss') && !text.includes('<feed')) {
+      console.error('[Capture] Response is not valid RSS/XML');
+      return null;
+    }
     
     const titleMatch = text.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
     const descMatch = text.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/);
     const authorMatch = text.match(/<author>(.*?)<\/author>/);
     const pubDateMatch = text.match(/<pubDate>(.*?)<\/pubDate>/);
     
-    if (!titleMatch) return null;
+    if (!titleMatch) {
+      console.error('[Capture] No title found in RSS');
+      return null;
+    }
 
     return {
       title: titleMatch[1],
@@ -66,7 +84,7 @@ export async function captureFromRSSHub(
       publishTime: pubDateMatch ? pubDateMatch[1] : undefined,
     };
   } catch (error) {
-    console.error('RSSHub capture failed:', error);
+    console.error('[Capture] RSSHub capture failed:', error);
     return null;
   }
 }
@@ -182,10 +200,10 @@ export async function createNoteWithProcess(
   // 7. 自动建立知识关联（异步执行，不阻塞）
   autoLinkNote(noteId).then(count => {
     if (count > 0) {
-      console.log(`Auto-linked ${count} related notes for ${noteId}`);
+      console.log(`[Capture] Auto-linked ${count} related notes for ${noteId}`);
     }
   }).catch(err => {
-    console.error('Auto-link error:', err);
+    console.error('[Capture] Auto-link error:', err);
   });
   
   return noteId;
