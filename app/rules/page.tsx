@@ -75,7 +75,6 @@ export default function RulesPage() {
 
   const handleDelete = async (ruleId: string) => {
     if (!confirm('确定要删除这个规则吗？')) return;
-    
     try {
       await fetch(`/api/rules/${ruleId}`, { method: 'DELETE' });
       toast('success', '规则已删除');
@@ -86,72 +85,77 @@ export default function RulesPage() {
   };
 
   return (
-    <div className="page-container">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">规则引擎</h1>
-          <p className="text-gray-500 mt-1">自定义内容处理流程</p>
+    <div className="page-container max-w-2xl mx-auto">
+      {/* 顶部 */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="hidden md:block">
+          <h1 className="text-xl font-bold text-gray-900">规则引擎</h1>
+          <p className="text-gray-500 text-sm">自定义内容处理流程</p>
         </div>
-        <Button onClick={() => { setEditingRule(null); setShowEditor(true); }}>
-          <Plus className="w-4 h-4 mr-2" />
-          新建规则
+        <Button size="sm" onClick={() => { setEditingRule(null); setShowEditor(true); }}>
+          <Plus className="w-4 h-4 md:mr-2" />
+          <span className="hidden md:inline">新建规则</span>
         </Button>
       </div>
 
       {/* 规则说明 */}
-      <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
-        <h3 className="font-medium text-gray-900 mb-2">📋 规则引擎是什么？</h3>
-        <p className="text-sm text-gray-600 mb-3">
-          规则引擎允许你自定义内容抓取后的处理流程。当新内容抓取后，系统会自动匹配规则并执行相应动作。
+      <Card className="p-3 mb-4 bg-blue-50 border-blue-200">
+        <p className="text-xs text-blue-800">
+          规则引擎允许你自定义内容抓取后的处理流程。例如：抓取知乎回答后自动剔除广告、提取核心观点等。
         </p>
-        <div className="text-sm text-gray-600">
-          <strong>示例：</strong>抓取知乎回答后 → 自动剔除广告 → 提取核心观点 → 生成金句 → 添加"知乎"标签
-        </div>
       </Card>
 
       {/* 规则列表 */}
       {isLoading ? (
-        <div className="text-center py-8 text-gray-500">加载中...</div>
+        <div className="text-center py-8 text-gray-400">加载中...</div>
       ) : rules.length === 0 ? (
         <Card className="p-8 text-center">
-          <div className="text-4xl mb-4">⚙️</div>
-          <p className="text-gray-500 mb-4">暂无规则</p>
-          <Button onClick={() => setShowEditor(true)}>创建第一条规则</Button>
+          <div className="text-3xl mb-3">⚙️</div>
+          <p className="text-gray-400 text-sm mb-4">暂无规则</p>
+          <Button size="sm" onClick={() => setShowEditor(true)}>创建第一条规则</Button>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {rules.map(rule => (
-            <Card key={rule.id} className={`p-4 ${!rule.is_active ? 'opacity-60' : ''}`}>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => handleToggleActive(rule.id, rule.is_active)}
-                    className="cursor-pointer"
-                  >
-                    {rule.is_active ? (
-                      <Power className="w-5 h-5 text-green-500" />
-                    ) : (
-                      <PowerOff className="w-5 h-5 text-gray-400" />
+            <Card key={rule.id} className={`p-3 ${!rule.is_active ? 'opacity-60' : ''}`}>
+              <div className="flex items-start gap-3">
+                {/* 启用状态 */}
+                <button
+                  onClick={() => handleToggleActive(rule.id, rule.is_active)}
+                  className="mt-0.5 flex-shrink-0"
+                >
+                  {rule.is_active ? (
+                    <Power className="w-5 h-5 text-green-500" />
+                  ) : (
+                    <PowerOff className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+                
+                {/* 内容 */}
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-medium text-gray-900 text-sm">{rule.name}</h3>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-gray-400 flex-wrap">
+                    {rule.trigger?.platform && (
+                      <span className="px-1.5 py-0.5 bg-gray-100 rounded">{rule.trigger.platform}</span>
                     )}
-                  </button>
-                  <div>
-                    <h3 className="font-medium text-gray-900">{rule.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      {rule.trigger?.platform && (
-                        <span className="px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded">
-                          {rule.trigger.platform}
-                        </span>
-                      )}
-                      <span className="text-xs text-gray-400">
-                        {rule.actions?.length || 0} 个动作
-                      </span>
-                      <span className="text-xs text-gray-400">
-                        创建于 {formatDateShort(rule.created_at)}
-                      </span>
-                    </div>
+                    <span>{rule.actions?.length || 0} 个动作</span>
+                    <span>{formatDateShort(rule.created_at)}</span>
                   </div>
+                  
+                  {/* 关键词 */}
+                  {(rule.trigger?.keywords?.length ?? 0) > 0 && (
+                    <div className="flex gap-1 mt-2 flex-wrap">
+                      {rule.trigger?.keywords?.map(kw => (
+                        <span key={kw} className="px-1.5 py-0.5 bg-amber-50 text-amber-700 text-xs rounded">
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-2">
+                
+                {/* 操作按钮 */}
+                <div className="flex gap-1 flex-shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -168,32 +172,6 @@ export default function RulesPage() {
                   </Button>
                 </div>
               </div>
-              
-              {/* 规则详情 */}
-              {(rule.trigger?.keywords?.length || rule.actions?.length) && (
-                <div className="mt-3 pt-3 border-t border-gray-100">
-                  {(rule.trigger?.keywords?.length || 0) > 0 && (
-                    <div className="text-sm mb-2">
-                      <span className="text-gray-500">触发关键词：</span>
-                      {rule.trigger.keywords?.map(kw => (
-                        <span key={kw} className="mr-2 px-2 py-0.5 bg-amber-50 text-amber-700 text-xs rounded">
-                          {kw}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {rule.actions?.length > 0 && (
-                    <div className="text-sm">
-                      <span className="text-gray-500">执行动作：</span>
-                      {rule.actions.map((action, i) => (
-                        <span key={i} className="mr-2 px-2 py-0.5 bg-blue-50 text-blue-700 text-xs rounded">
-                          {action.type}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
             </Card>
           ))}
         </div>

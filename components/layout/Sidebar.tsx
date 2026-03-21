@@ -27,7 +27,8 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen">
+    <aside className="hidden md:flex w-64 bg-white border-r border-gray-200 flex-col h-screen flex-shrink-0">
+      {/* Logo */}
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
         <Link href="/" className="flex items-center gap-2">
           <span className="text-2xl">🦞</span>
@@ -35,10 +36,12 @@ export function Sidebar() {
         </Link>
       </div>
 
+      {/* Navigation */}
       <nav className="flex-1 py-4 overflow-y-auto">
         <ul className="space-y-1 px-3">
           {navItems.map(item => {
-            const isActive = pathname === item.href;
+            const isActive = pathname === item.href || 
+              (item.href !== '/' && pathname.startsWith(item.href));
             return (
               <li key={item.href}>
                 <Link
@@ -59,6 +62,7 @@ export function Sidebar() {
         </ul>
       </nav>
 
+      {/* Footer */}
       <div className="p-4 border-t border-gray-200">
         <div className="text-xs text-gray-400">
           Powered by OpenClaw

@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Save, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Save } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card } from '@/components/ui/Card';
@@ -53,19 +52,20 @@ export default function NewNotePage() {
   };
 
   return (
-    <div className="page-container max-w-4xl">
-      <div className="flex items-center justify-between mb-6">
-        <Link href="/notes" className="flex items-center gap-2 text-gray-600 hover:text-gray-900">
-          <ArrowLeft className="w-4 h-4" />
-          返回列表
-        </Link>
-        <Button onClick={handleSave} disabled={saving}>
-          <Save className="w-4 h-4 mr-2" />
-          {saving ? '保存中...' : '保存'}
+    <div className="page-container max-w-3xl mx-auto">
+      {/* 顶部操作栏 */}
+      <div className="flex items-center justify-between mb-4">
+        {/* 移动端返回在顶部标题栏 */}
+        <div className="hidden md:block text-sm text-gray-500">
+          ← 返回列表
+        </div>
+        <Button onClick={handleSave} disabled={saving} size="sm" className="ml-auto">
+          <Save className="w-4 h-4 md:mr-2" />
+          <span className="hidden md:inline">{saving ? '保存中...' : '保存'}</span>
         </Button>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-4">
         <div className="space-y-4">
           <Input
             label="标题"
@@ -77,7 +77,7 @@ export default function NewNotePage() {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">内容</label>
             <textarea
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg min-h-[400px] focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg min-h-[300px] md:min-h-[400px] text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="输入笔记内容..."
               value={form.content}
               onChange={e => setForm({ ...form, content: e.target.value })}
