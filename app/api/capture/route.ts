@@ -4,10 +4,9 @@ import {
   createCaptureTask, 
   captureFromRSSHub,
   updateCaptureTask,
-  getAllTasks
+  getAllTasks,
+  createNoteWithProcess
 } from '@/lib/services/capture';
-import { generateId } from '@/lib/utils';
-import { getDbSync, saveDbSync } from '@/lib/db';
 import { ensureDbInitialized } from '@/lib/db/init';
 
 export async function POST(request: NextRequest) {
@@ -40,16 +39,13 @@ export async function POST(request: NextRequest) {
     );
 
     if (result) {
-      const db = getDbSync();
-      const noteId = generateId();
-      const now = new Date().toISOString();
-      
-      db.run(
-        `INSERT INTO notes (id, title, content, source_url, source_platform, created_at, updated_at) 
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [noteId, result.title, result.content, url, platformInfo.platform, now, now]
+      // 使用新的处理流程（降噪、摘要、关键词、素材、快照）
+      const noteId = await createNoteWithProcess(
+        result.title,
+        result.content,
+        url,
+        platformInfo.platform
       );
-      saveDbSync();
 
       updateCaptureTask(taskId, 'completed', noteId);
 

@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, ExternalLink, Edit2, Trash2, Tag, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Edit2, Trash2, Tag, Calendar, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { PLATFORMS } from '@/lib/constants';
@@ -62,6 +62,14 @@ export default function NoteDetailPage() {
           返回列表
         </Link>
         <div className="flex gap-2">
+          {note.snapshot_path && (
+            <Link href={`/snapshot/${noteId}`}>
+              <Button variant="secondary" size="sm">
+                <FileText className="w-4 h-4 mr-2" />
+                查看快照
+              </Button>
+            </Link>
+          )}
           <Button variant="secondary" size="sm">
             <Edit2 className="w-4 h-4 mr-2" />
             编辑
@@ -122,7 +130,7 @@ export default function NoteDetailPage() {
       {/* 摘要 */}
       {note.summary && (
         <Card className="p-4 mb-6 bg-blue-50 border-blue-200">
-          <h3 className="font-medium text-gray-900 mb-2">摘要</h3>
+          <h3 className="font-medium text-gray-900 mb-2">📝 AI 摘要</h3>
           <p className="text-gray-700">{note.summary}</p>
         </Card>
       )}
@@ -141,10 +149,10 @@ export default function NoteDetailPage() {
       {/* 关键词 */}
       {note.keywords?.length > 0 && (
         <div className="mt-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-2">关键词</h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-2">🔑 关键词</h3>
           <div className="flex flex-wrap gap-2">
             {note.keywords.map((kw: string) => (
-              <span key={kw} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
+              <span key={kw} className="px-2 py-1 bg-amber-50 text-amber-700 text-xs rounded">
                 {kw}
               </span>
             ))}
